@@ -1,0 +1,29 @@
+<main class="login-shell">
+  <section class="login-panel">
+    <div>
+      <p class="eyebrow">XC Portfolio Admin</p>
+      <h1>Contenido listo para editar</h1>
+      <p class="muted">
+        Modo local para disenar el flujo V2.2. Despues este login apunta a la API con password hasheado y JWT.
+      </p>
+    </div>
+
+    <form class="form-stack" [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>Email</span>
+        <input formControlName="email" autocomplete="username" />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input formControlName="password" type="password" autocomplete="current-password" />
+      </label>
+
+      @if (error()) {
+        <p class="form-error">{{ error() }}</p>
+      }
+
+      <button class="primary-button" type="submit">Entrar</button>
+    </form>
+  </section>
+</main>

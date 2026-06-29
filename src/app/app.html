@@ -1,0 +1,10 @@
+<router-outlet />
+
+<section class="toast-stack" aria-live="polite" aria-label="Notificaciones">
+  @for (message of toast.messages(); track message.id) {
+    <article class="toast" [class.toast--success]="message.type === 'success'" [class.toast--error]="message.type === 'error'">
+      <span>{{ message.message }}</span>
+      <button type="button" aria-label="Cerrar notificacion" (click)="toast.dismiss(message.id)">x</button>
+    </article>
+  }
+</section>

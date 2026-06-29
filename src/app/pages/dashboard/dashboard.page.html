@@ -1,0 +1,244 @@
+<main class="admin-layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">XC</span>
+      <div>
+        <strong>Portfolio Admin</strong>
+        <small>V2.2 content workspace</small>
+      </div>
+    </div>
+
+    <nav class="nav-list" aria-label="Admin sections">
+      <button [class.active]="activeSection() === 'overview'" (click)="setSection('overview')">Resumen</button>
+      <button [class.active]="activeSection() === 'experiences'" (click)="setSection('experiences')">Experiencias</button>
+      <button [class.active]="activeSection() === 'projects'" (click)="setSection('projects')">Proyectos</button>
+      <button [class.active]="activeSection() === 'about'" (click)="setSection('about')">About</button>
+      <button [class.active]="activeSection() === 'social'" (click)="setSection('social')">Social</button>
+      <button [class.active]="activeSection() === 'settings'" (click)="setSection('settings')">API</button>
+    </nav>
+
+    <button class="ghost-button" type="button" (click)="logout()">Salir</button>
+  </aside>
+
+  <section class="workspace">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Dashboard</p>
+        <h1>Administrador de contenido</h1>
+      </div>
+
+      <div class="segmented">
+        <button [class.active]="activeLocale() === 'es'" (click)="setLocale('es')">ES</button>
+        <button [class.active]="activeLocale() === 'en'" (click)="setLocale('en')">EN</button>
+      </div>
+    </header>
+
+    @if (activeSection() === 'overview') {
+      @if (isLoading()) {
+        <section class="panel">
+          <p class="muted">Cargando contenido desde la API V2...</p>
+        </section>
+      }
+
+      <section class="stats-grid">
+        <article class="metric"><span>Registros</span><strong>{{ totalDrafts() }}</strong></article>
+        <article class="metric"><span>Publicados</span><strong>{{ store.publishedCount() }}</strong></article>
+        <article class="metric"><span>Experiencias</span><strong>{{ store.stats()?.experiences ?? store.experiences().length }}</strong></article>
+        <article class="metric"><span>Proyectos</span><strong>{{ store.stats()?.projects ?? store.projects().length }}</strong></article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Flujo preparado</h2>
+            <p>Los formularios ya producen el contrato que consumira el backend admin.</p>
+          </div>
+        </div>
+        <div class="contract-grid">
+          <article><strong>Auth</strong><span>/api/v2/auth/login</span></article>
+          <article><strong>Experiencias</strong><span>/api/v2/admin/experiences</span></article>
+          <article><strong>Proyectos</strong><span>/api/v2/admin/projects</span></article>
+          <article><strong>Stats V3</strong><span>/api/v2/admin/stats</span></article>
+        </div>
+      </section>
+    }
+
+    @if (activeSection() === 'experiences') {
+      <section class="editor-grid">
+        <form class="panel form-stack" [formGroup]="experienceForm" (ngSubmit)="saveExperience()">
+          <div class="panel-header">
+            <div>
+              <h2>{{ editingExperience() ? 'Editar experiencia' : 'Nueva experiencia' }}</h2>
+              <p>Incluye logo y link de empresa cuando exista.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label><span>Empresa</span><input formControlName="company" /></label>
+            <label><span>Rol</span><input formControlName="role" /></label>
+            <label><span>Periodo</span><input formControlName="year" /></label>
+            <label><span>Orden</span><input formControlName="order" type="number" /></label>
+          </div>
+          <label><span>Descripcion</span><textarea formControlName="description" rows="5"></textarea></label>
+          <label><span>Tags separados por coma</span><input formControlName="tags" /></label>
+          <div class="form-grid">
+            <label><span>Logo URL</span><input formControlName="logoUrl" /></label>
+            <label><span>Empresa URL</span><input formControlName="companyUrl" /></label>
+          </div>
+          <label class="check-row"><input formControlName="isPublished" type="checkbox" /> Publicado</label>
+
+          <div class="action-row">
+            <button class="primary-button" type="submit">Guardar</button>
+            <button class="ghost-button" type="button" (click)="cancelExperience()">Limpiar</button>
+          </div>
+        </form>
+
+        <section class="panel list-panel">
+          @for (item of experiences(); track item.id) {
+            <article class="content-row">
+              <div class="logo-slot">{{ item.company.slice(0, 2).toUpperCase() }}</div>
+              <div>
+                <strong>{{ item.company }}</strong>
+                <span>{{ item.role }} · {{ item.year }}</span>
+                <small>{{ item.tags.join(', ') }}</small>
+              </div>
+              <div class="row-actions">
+                <button (click)="editExperience(item)">Editar</button>
+                <button (click)="remove('experiences', item.id)">Eliminar</button>
+              </div>
+            </article>
+          }
+        </section>
+      </section>
+    }
+
+    @if (activeSection() === 'projects') {
+      <section class="section-toolbar">
+        <div class="segmented">
+          <button [class.active]="activeProjectType() === 'professional'" (click)="setProjectType('professional')">Profesionales</button>
+          <button [class.active]="activeProjectType() === 'personal'" (click)="setProjectType('personal')">Personales</button>
+        </div>
+      </section>
+
+      <section class="editor-grid">
+        <form class="panel form-stack" [formGroup]="projectForm" (ngSubmit)="saveProject()">
+          <div class="panel-header">
+            <div>
+              <h2>{{ editingProject() ? 'Editar proyecto' : 'Nuevo proyecto' }}</h2>
+              <p>Listo para logo, link externo y publicacion controlada.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label><span>Titulo</span><input formControlName="title" /></label>
+            <label><span>Categoria</span><input formControlName="category" /></label>
+            <label><span>Orden</span><input formControlName="order" type="number" /></label>
+          </div>
+          <label><span>Descripcion</span><textarea formControlName="description" rows="5"></textarea></label>
+          <label><span>Tags separados por coma</span><input formControlName="tags" /></label>
+          <div class="form-grid">
+            <label><span>Logo URL</span><input formControlName="logoUrl" /></label>
+            <label><span>Proyecto URL</span><input formControlName="projectUrl" /></label>
+          </div>
+          <label class="check-row"><input formControlName="isPublished" type="checkbox" /> Publicado</label>
+
+          <div class="action-row">
+            <button class="primary-button" type="submit">Guardar</button>
+            <button class="ghost-button" type="button" (click)="cancelProject()">Limpiar</button>
+          </div>
+        </form>
+
+        <section class="panel list-panel">
+          @for (item of projects(); track item.id) {
+            <article class="content-row">
+              <div class="logo-slot">{{ item.title.slice(0, 2).toUpperCase() }}</div>
+              <div>
+                <strong>{{ item.title }}</strong>
+                <span>{{ item.category }}</span>
+                <small>{{ item.tags.join(', ') }}</small>
+              </div>
+              <div class="row-actions">
+                <button (click)="editProject(item)">Editar</button>
+                <button (click)="remove('projects', item.id)">Eliminar</button>
+              </div>
+            </article>
+          }
+        </section>
+      </section>
+    }
+
+    @if (activeSection() === 'about') {
+      <section class="editor-grid">
+        <form class="panel form-stack" [formGroup]="aboutForm" (ngSubmit)="saveAbout()">
+          <div class="panel-header"><div><h2>Seccion About</h2><p>Parrafos por linea y stack por coma.</p></div></div>
+          <div class="form-grid">
+            <label><span>Titulo</span><input formControlName="title" /></label>
+            <label><span>Orden</span><input formControlName="order" type="number" /></label>
+          </div>
+          <label><span>Parrafos</span><textarea formControlName="paragraphs" rows="7"></textarea></label>
+          <label><span>Stack</span><input formControlName="stack" /></label>
+          <label class="check-row"><input formControlName="isPublished" type="checkbox" /> Publicado</label>
+          <div class="action-row"><button class="primary-button" type="submit">Guardar</button><button class="ghost-button" type="button" (click)="cancelAbout()">Limpiar</button></div>
+        </form>
+
+        <section class="panel list-panel">
+          @for (item of about(); track item.id) {
+            <article class="content-row">
+              <div><strong>{{ item.title }}</strong><span>{{ item.paragraphs[0] }}</span><small>{{ item.stack.join(', ') }}</small></div>
+              <div class="row-actions"><button (click)="editAbout(item)">Editar</button><button (click)="remove('about', item.id)">Eliminar</button></div>
+            </article>
+          }
+        </section>
+      </section>
+    }
+
+    @if (activeSection() === 'social') {
+      <section class="editor-grid">
+        <form class="panel form-stack" [formGroup]="socialForm" (ngSubmit)="saveSocial()">
+          <div class="panel-header"><div><h2>Red social</h2><p>Links visibles del portfolio.</p></div></div>
+          <div class="form-grid">
+            <label><span>Label</span><input formControlName="label" /></label>
+            <label><span>Valor visible</span><input formControlName="value" /></label>
+            <label><span>Orden</span><input formControlName="order" type="number" /></label>
+          </div>
+          <label><span>Link</span><input formControlName="link" /></label>
+          <label><span>Descripcion</span><textarea formControlName="description" rows="4"></textarea></label>
+          <label class="check-row"><input formControlName="isPublished" type="checkbox" /> Publicado</label>
+          <div class="action-row"><button class="primary-button" type="submit">Guardar</button><button class="ghost-button" type="button" (click)="cancelSocial()">Limpiar</button></div>
+        </form>
+
+        <section class="panel list-panel">
+          @for (item of social(); track item.id) {
+            <article class="content-row">
+              <div><strong>{{ item.label }}</strong><span>{{ item.value }}</span><small>{{ item.description }}</small></div>
+              <div class="row-actions"><button (click)="editSocial(item)">Editar</button><button (click)="remove('social', item.id)">Eliminar</button></div>
+            </article>
+          }
+        </section>
+      </section>
+    }
+
+    @if (activeSection() === 'settings') {
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Contrato de conexion</h2>
+            <p>Estos nombres dejan claro donde conectar cuando el backend admin este listo.</p>
+          </div>
+        </div>
+        <pre class="code-block">POST   /api/v2/auth/login
+GET    /api/v2/admin/stats
+
+GET    /api/v2/admin/experiences
+POST   /api/v2/admin/experiences
+PUT    /api/v2/admin/experiences/:id
+DELETE /api/v2/admin/experiences/:id
+
+GET    /api/v2/admin/projects
+POST   /api/v2/admin/projects
+PUT    /api/v2/admin/projects/:id
+DELETE /api/v2/admin/projects/:id</pre>
+      </section>
+    }
+  </section>
+</main>
