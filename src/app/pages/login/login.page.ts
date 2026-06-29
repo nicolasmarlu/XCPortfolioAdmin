@@ -17,8 +17,8 @@ export class LoginPage {
 
   readonly error = signal('');
   readonly form = this.fb.nonNullable.group({
-    email: ['admin@xcportfolio.dev', [Validators.required, Validators.email]],
-    password: ['Admin123!', Validators.required],
+    email: ['nicolasmarluti18pro@outlook.com', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
   });
 
   async submit(): Promise<void> {
@@ -34,8 +34,9 @@ export class LoginPage {
       this.toast.success('Sesion iniciada.');
       this.router.navigateByUrl('/');
     } catch {
-      this.error.set('Credenciales invalidas para el modo local.');
+      this.error.set('Credenciales invalidas.');
       this.toast.error('No se pudo iniciar sesion.');
     }
   }
 }
+
